@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const Joi = require("joi"); // auto validation
 app.use(express.json()); // middleware to parse json from request bodies
 require("dotenv").config();
 const server_port = process.env.SERVER_PORT;
