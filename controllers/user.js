@@ -122,7 +122,7 @@ const borrow = (request, response) => {
                 }
               );
             } else {
-              res.status(500).send(error.message);
+              response.status(500).send(error.message);
             }
           }
         );
@@ -132,6 +132,41 @@ const borrow = (request, response) => {
     }
   });
 };
+
+const refund = (request, response) => {
+  const { userID, bookID, transaction_state, transaction_type } = request.body;
+
+  db_client.query(getBookQuantityQuery, [bookID], (err, results) => {
+    if (!err) {
+      console.log(results.rows[0].quantity);
+      const quantity = results.rows[0].quantity;
+      db_client.query(
+        borrowQuery,
+        [userID, bookID, transaction_state, transaction_type],
+        (error, b_result) => {
+          if (!error) {
+            db_client.query(
+              updateBookQuantityQuery,
+              [quantity + 1, bookID],
+              (e, r) => {
+                response
+                  .status(200)
+                  .send(
+                    "Transaction completed and database updated successfully"
+                  );
+              }
+            );
+          } else {
+            response.status(500).send(error.message);
+          }
+        }
+      );
+    } else {
+      response.status(500).send(err);
+    }
+  });
+};
+
 module.exports = {
   signUp,
   getAllUsers,
@@ -139,4 +174,5 @@ module.exports = {
   deleteUser,
   getUserProfile,
   borrow,
+  refund,
 };
