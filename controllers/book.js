@@ -6,7 +6,8 @@ const {
   addNewBookQuery,
   deleteExistingBookQuery,
   getBookByIDQuery,
-  updateBookQuery,
+  updateBookQuantityQuery,
+  getBookQuantityQuery,
   getBookByISBNQuery,
 } = require("../queries/book");
 
@@ -98,32 +99,9 @@ const deleteExistingBook = (req, res) => {
   });
 };
 
-const updateBook = (req, res) => {
-  console.log(req.params);
-  const id = req.params.id;
-  const quantity = req.body.quantity;
-  db_client.query(getBookByIDQuery, [id], (error, results) => {
-    if (!error) {
-      if (results.rows.length == 0) {
-        res.status(400).send("No book exists with this ID");
-      } else {
-        if (quantity < 0) {
-          res.status(400).send("quantity must be a positive value");
-        } else {
-          db_client.query(updateBookQuery, [quantity, id], (e, r) => {
-            res.status(200).send("updated successfully");
-          });
-        }
-      }
-    } else {
-      res.status(400).send(error);
-    }
-  });
-};
 module.exports = {
   getAllBooks,
   getBookByID,
   addNewBook,
   deleteExistingBook,
-  updateBook,
 };

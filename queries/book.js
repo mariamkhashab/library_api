@@ -8,12 +8,14 @@ const addNewBookQuery =
   "insert into book(title,author,ISBN,quantity) values ($1, $2, $3, $4)";
 
 const deleteExistingBookQuery = "delete from book where id = $1 ";
-const updateBookQuery = "update book set quantity = $1 where id = $2";
+const getBookQuantityQuery = "select quantity from book where id = $1";
+const updateBookQuantityQuery = "update book set quantity = $1 where id = $2";
 module.exports = {
   getAllBooksQuery,
   addNewBookQuery,
   deleteExistingBookQuery,
   getBookByIDQuery,
-  updateBookQuery,
+  getBookQuantityQuery,
+  updateBookQuantityQuery,
   getBookByISBNQuery,
 };

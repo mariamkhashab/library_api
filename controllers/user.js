@@ -11,7 +11,10 @@ const {
   getTransactionQuery,
 } = require("../queries/user");
 
-const { updateBook } = require("../controllers/book");
+const {
+  updateBookQuantityQuery,
+  getBookQuantityQuery,
+} = require("../queries/book");
 
 const signUp = (req, res) => {
   const { name, email } = req.body;
@@ -92,30 +95,42 @@ const deleteUser = (req, res) => {
   });
 };
 
-const borrow = (req, res) => {
-  const { userID, bookID, transaction_state, transaction_type } = req.body;
-  db_client.query(
-    borrowQuery,
-    [userID, bookID, transaction_state, transaction_type],
-    (error, results) => {
-      if (!error) {
-        borrowQuery({ req: { params: { id: bookID } } });
+const borrow = (request, response) => {
+  const { userID, bookID, transaction_state, transaction_type } = request.body;
+
+  db_client.query(getBookQuantityQuery, [bookID], (err, results) => {
+    if (!err) {
+      console.log(results.rows[0].quantity);
+      const quantity = results.rows[0].quantity;
+      if (quantity <= 0) {
+        response.status(400).send("Book out of stock");
+      } else {
         db_client.query(
-          getTransactionQuery,
+          borrowQuery,
           [userID, bookID, transaction_state, transaction_type],
-          (e, r) => {
-            if (!e) {
-              res.status(200).json(r.rows);
+          (error, b_result) => {
+            if (!error) {
+              db_client.query(
+                updateBookQuantityQuery,
+                [quantity - 1, bookID],
+                (e, r) => {
+                  response
+                    .status(200)
+                    .send(
+                      "Transaction completed and database updated successfully"
+                    );
+                }
+              );
             } else {
-              res.status(400).send(e.message);
+              res.status(500).send(error.message);
             }
           }
         );
-      } else {
-        res.status(400).send(error.message);
       }
+    } else {
+      res.status(500).send(err);
     }
-  );
+  });
 };
 module.exports = {
   signUp,
