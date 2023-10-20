@@ -11,7 +11,7 @@ const router = Router();
 router.get("/", getAllBooks);
 router.get("/:id", getBookByID);
 router.post("/", addNewBook);
-router.delete("/", deleteExistingBook);
+router.delete("/:id", deleteExistingBook);
 router.put("/:id", updateBook);
 
 module.exports = router;

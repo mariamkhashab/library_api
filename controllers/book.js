@@ -6,6 +6,8 @@ const {
   addNewBookQuery,
   deleteExistingBookQuery,
   getBookByIDQuery,
+  updateBookQuery,
+  getBookByISBNQuery,
 } = require("../queries/book");
 
 const getAllBooks = (req, res) => {
@@ -42,7 +44,7 @@ const getBookByID = (req, res) => {
   const id = req.params.id;
   db_client.query(getBookByIDQuery, [id], (error, results) => {
     if (!error) {
-      if (results.rows == []) {
+      if (results.rows.length == 0) {
         res.status(200).send("No book exists with this ID");
       } else {
         res.status(200).json(results.rows);
@@ -55,38 +57,66 @@ const getBookByID = (req, res) => {
 
 const addNewBook = (req, res) => {
   const { title, author, ISBN, quantity } = req.body;
-
-  db_client.query(
-    addNewBookQuery,
-    [title, author, ISBN, quantity],
-    (error, results) => {
-      if (!error) {
-        res.status(201).send("added successfully");
+  db_client.query(getBookByISBNQuery, [ISBN], (error, results) => {
+    if (!error) {
+      if (results.rows.length > 0) {
+        res.status(400).send("book with ISBN already exists");
       } else {
-        res.status(400).send(error.message);
+        db_client.query(
+          addNewBookQuery,
+          [title, author, ISBN, quantity],
+          (book_error, book_results) => {
+            if (!book_error) {
+              res.status(200).send("Book added successfully");
+            } else {
+              res.status(500).send(book_error);
+            }
+          }
+        );
       }
+    } else {
+      res.status(500).send(error);
     }
-  );
+  });
 };
 
 const deleteExistingBook = (req, res) => {
-  const { id } = req.body;
-  db_client.query(deleteExistingBookQuery, [id], (error, results) => {
+  const id = req.params.id;
+  db_client.query(getBookByIDQuery, [id], (error, results) => {
     if (!error) {
-      res.status(201).send("deleted successfully");
+      console.log(results.rows.length);
+      if (results.rows.length == 0) {
+        res.status(400).send("No book exists with this ID");
+      } else {
+        db_client.query(deleteExistingBookQuery, [id], () => {
+          res.status(201).send("Deleted successfully");
+        });
+      }
     } else {
-      res.status(400).send(error.message);
+      res.status(400).send(error);
     }
   });
 };
 
 const updateBook = (req, res) => {
-  const { id } = req.body;
-  db_client.query(deleteExistingBookQuery, [id], (error, results) => {
+  console.log(req.params);
+  const id = req.params.id;
+  const quantity = req.body.quantity;
+  db_client.query(getBookByIDQuery, [id], (error, results) => {
     if (!error) {
-      res.status(201).send("deleted successfully");
+      if (results.rows.length == 0) {
+        res.status(400).send("No book exists with this ID");
+      } else {
+        if (quantity < 0) {
+          res.status(400).send("quantity must be a positive value");
+        } else {
+          db_client.query(updateBookQuery, [quantity, id], (e, r) => {
+            res.status(200).send("updated successfully");
+          });
+        }
+      }
     } else {
-      res.status(400).send(error.message);
+      res.status(400).send(error);
     }
   });
 };

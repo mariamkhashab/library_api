@@ -7,7 +7,11 @@ const {
   getAllUsersQuery,
   deleteUserQuery,
   getUserByIDQuery,
+  borrowQuery,
+  getTransactionQuery,
 } = require("../queries/user");
+
+const { updateBook } = require("../controllers/book");
 
 const signUp = (req, res) => {
   const { name, email } = req.body;
@@ -88,4 +92,36 @@ const deleteUser = (req, res) => {
   });
 };
 
-module.exports = { signUp, getAllUsers, logIn, deleteUser, getUserProfile };
+const borrow = (req, res) => {
+  const { userID, bookID, transaction_state, transaction_type } = req.body;
+  db_client.query(
+    borrowQuery,
+    [userID, bookID, transaction_state, transaction_type],
+    (error, results) => {
+      if (!error) {
+        borrowQuery({ req: { params: { id: bookID } } });
+        db_client.query(
+          getTransactionQuery,
+          [userID, bookID, transaction_state, transaction_type],
+          (e, r) => {
+            if (!e) {
+              res.status(200).json(r.rows);
+            } else {
+              res.status(400).send(e.message);
+            }
+          }
+        );
+      } else {
+        res.status(400).send(error.message);
+      }
+    }
+  );
+};
+module.exports = {
+  signUp,
+  getAllUsers,
+  logIn,
+  deleteUser,
+  getUserProfile,
+  borrow,
+};
