@@ -39,10 +39,10 @@ const getAllBooks = (req, res) => {
 };
 
 const getBookByID = (req, res) => {
-  const { id } = req.body;
+  const id = req.params.id;
   db_client.query(getBookByIDQuery, [id], (error, results) => {
     if (!error) {
-      if ((results.rows = [])) {
+      if (results.rows == []) {
         res.status(200).send("No book exists with this ID");
       } else {
         res.status(200).json(results.rows);

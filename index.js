@@ -6,9 +6,11 @@ require("dotenv").config();
 
 // import routes
 const bookRoutes = require("./routes/book.js");
+const userRoutes = require("./routes/user.js");
 
 // use routes
 app.use("/books", bookRoutes);
+app.use("/users", userRoutes);
 
 const server_port = process.env.SERVER_PORT;
 app.listen(server_port, () => {
