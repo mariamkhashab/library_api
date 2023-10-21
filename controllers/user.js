@@ -1,4 +1,5 @@
 const db_client = require("../database");
+const bcrypt = require("bcryptjs");
 const Joi = require("joi"); // auto validation
 
 const {
@@ -9,21 +10,33 @@ const {
   getUserByIDQuery,
   borrowQuery,
   getTransactionQuery,
+  getUserByEmailQuery,
 } = require("../queries/user");
 
 const {
   updateBookQuantityQuery,
   getBookQuantityQuery,
 } = require("../queries/book");
+const { use } = require("../routes/book");
 
-const signUp = (req, res) => {
-  const { name, email } = req.body;
-
-  db_client.query(signUpQuery, [name, email], (error, results) => {
+const signUp = async (req, res) => {
+  const { name, email, password } = req.body;
+  const hashed_password = await bcrypt.hash(password, 5);
+  db_client.query(getUserByEmailQuery, [email], (error, results) => {
     if (!error) {
-      res.status(201).send("added successfully");
+      if (results.rows.length == 0) {
+        db_client.query(signUpQuery, [name, email, hashed_password], (e, r) => {
+          if (!e) {
+            res.status(201).send("added successfully");
+          } else {
+            res.status(400).send(e.message);
+          }
+        });
+      } else {
+        res.status(400).send("user with this email already exists, login?");
+      }
     } else {
-      res.status(400).send(error.message);
+      res.status(500).send(error);
     }
   });
 };
@@ -54,24 +67,32 @@ const getUserProfile = (req, res) => {
 };
 
 const logIn = (req, res) => {
-  const email = req.body["email"];
-  console.log("email", email);
-
+  const { email, password } = req.body;
+  var user_passsword = null;
   if (email == {}) {
     res.status(400).send("please enter a valid email");
-  } else {
-    db_client.query(logInQuery, [email], (error, results) => {
-      if (!error) {
-        if (results.rows.length != 0) {
-          res.status(200).json({ message: `user ${email}'s home feed` });
-        } else {
-          res.status(404).send("No user exists with this email, Sign up?");
-        }
+  }
+  db_client.query(getUserByEmailQuery, [email], (error, result) => {
+    if (!error) {
+      if (result.rows.length == 0) {
+        res.status(400).send("user with this email doesnt exist, signup?");
+      }
+    } else {
+      res.status(500).send(error);
+    }
+    user_passsword = result.rows[0]["password"];
+    bcrypt.compare(password, user_passsword, (err, succ) => {
+      console.log(err, succ);
+      if (err) {
+        res.status(400).send(err);
+      }
+      if (succ) {
+        res.status(200).send("Logged in successfully");
       } else {
-        res.status(400).json(results.rows);
+        res.status(400).send("Please enter the correct password");
       }
     });
-  }
+  });
 };
 
 const deleteUser = (req, res) => {

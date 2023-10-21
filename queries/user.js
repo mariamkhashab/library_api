@@ -1,4 +1,4 @@
-const signUpQuery = "insert into users(name,email) values ($1,$2)";
+const signUpQuery = "insert into users(name,email,password) values ($1,$2,$3)";
 
 const logInQuery = "select * from users where email = $1";
 
@@ -7,6 +7,8 @@ const getAllUsersQuery = "select * from users";
 const deleteUserQuery = "delete from users where id = $1 ";
 
 const getUserByIDQuery = "select * from users where id = $1";
+
+const getUserByEmailQuery = "select * from users where email = $1";
 
 const borrowQuery =
   "insert into transactions(userID,bookID,transaction_state, transaction_type)values($1,$2,$3,$4)";
@@ -21,4 +23,5 @@ module.exports = {
   getUserByIDQuery,
   borrowQuery,
   getTransactionQuery,
+  getUserByEmailQuery,
 };
