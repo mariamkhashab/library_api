@@ -1,4 +1,6 @@
 const { Router } = require("express");
+const { authenticateToken } = require("../middleware/authorization");
+
 const {
   signUp,
   getAllUsers,
@@ -7,6 +9,7 @@ const {
   getUserProfile,
   borrow,
   refund,
+  listMyBooks,
 } = require("../controllers/user.js");
 const router = Router();
 
@@ -18,5 +21,5 @@ router.post("/borrow", borrow);
 router.post("/refund", refund);
 router.delete("/:id", deleteUser);
 //router.put("/:id", updateProfile);
-
+router.get("/:id/mybooks", authenticateToken, listMyBooks);
 module.exports = router;

@@ -2,6 +2,7 @@ const db_client = require("../database");
 const bcrypt = require("bcryptjs");
 const Joi = require("joi"); // auto validation
 
+const { sign } = require("../middleware/authorization");
 const {
   signUpQuery,
   logInQuery,
@@ -11,6 +12,7 @@ const {
   borrowQuery,
   getTransactionQuery,
   getUserByEmailQuery,
+  listMyBooksQuery,
 } = require("../queries/user");
 
 const {
@@ -69,6 +71,7 @@ const getUserProfile = (req, res) => {
 const logIn = (req, res) => {
   const { email, password } = req.body;
   var user_passsword = null;
+  var access_token = null;
   if (email == {}) {
     res.status(400).send("please enter a valid email");
   }
@@ -87,7 +90,11 @@ const logIn = (req, res) => {
         res.status(400).send(err);
       }
       if (succ) {
-        res.status(200).send("Logged in successfully");
+        access_token = sign(result.rows[0]);
+        res.status(200).json({
+          message: "Logged in successfully",
+          access_token: access_token,
+        });
       } else {
         res.status(400).send("Please enter the correct password");
       }
@@ -188,6 +195,23 @@ const refund = (request, response) => {
   });
 };
 
+const listMyBooks = (req, res) => {
+  console.log("url", req.user);
+  const auth_id = req.user["id"];
+  const id = req.params.id;
+  if (auth_id != id) {
+    res.status(403).send("Not authorized");
+  } else {
+    db_client.query(listMyBooksQuery, [id], (err, result) => {
+      if (!err) {
+        res.status(200).json(result.rows);
+      } else {
+        res.status(500).send(error);
+      }
+    });
+  }
+};
+
 module.exports = {
   signUp,
   getAllUsers,
@@ -196,4 +220,5 @@ module.exports = {
   getUserProfile,
   borrow,
   refund,
+  listMyBooks,
 };

@@ -15,6 +15,10 @@ const borrowQuery =
 
 const getTransactionQuery =
   " select * from transactions where userID =$1 and bookID = $2 and transaction_state = $3 and transaction_type = $4";
+
+const listMyBooksQuery =
+  "select book.title from book inner join transactions t on t.bookID = book.id where t.transaction_type = 1 and userID = $1 and bookID not in (select bookID from transactions t2 where userID = t.userID and t2.transaction_type = 2)";
+
 module.exports = {
   signUpQuery,
   logInQuery,
@@ -24,4 +28,5 @@ module.exports = {
   borrowQuery,
   getTransactionQuery,
   getUserByEmailQuery,
+  listMyBooksQuery,
 };
