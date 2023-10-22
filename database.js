@@ -7,12 +7,11 @@ const database_name = process.env.DATABASE;
 
 const PG_client = require("pg").Pool;
 const db_client = new PG_client({
-  host: host,
-  user: user,
-  port: db_port,
-  password: db_password,
-  database: database_name,
+  connectionString: process.env.POSTGRES_URL + "?sslmode=require",
 });
-db_client.connect();
+db_client.connect((err) => {
+  if (err) throw err;
+  console.log("Connection to database established successfully");
+});
 
 module.exports = db_client;

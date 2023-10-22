@@ -15,6 +15,6 @@ app.use("/users", userRoutes);
 app.use("/admin", adminRoutes);
 
 const server_port = process.env.SERVER_PORT;
-app.listen(server_port, () => {
+app.listen(server_port || 5000, () => {
   console.log(`listening on port ${server_port}`);
 });
