@@ -29,7 +29,11 @@ const signUp = async (req, res) => {
       if (results.rows.length == 0) {
         db_client.query(signUpQuery, [name, email, hashed_password], (e, r) => {
           if (!e) {
-            res.status(201).send("added successfully");
+            Joi.string()
+              .email()
+              .required()
+              .status(201)
+              .send("added successfully, use email and password to log in");
           } else {
             res.status(400).send(e.message);
           }
