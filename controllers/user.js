@@ -1,6 +1,6 @@
 const db_client = require("../database");
 const bcrypt = require("bcryptjs");
-const Joi = require("joi"); // auto validation
+const validator = require("email-validator");
 
 const { sign } = require("../middleware/authorization");
 const {
@@ -20,31 +20,46 @@ const {
   getBookQuantityQuery,
 } = require("../queries/book");
 const { use } = require("../routes/book");
+const { valid } = require("joi");
 
 const signUp = async (req, res) => {
   const { name, email, password } = req.body;
-  const hashed_password = await bcrypt.hash(password, 5);
-  db_client.query(getUserByEmailQuery, [email], (error, results) => {
-    if (!error) {
-      if (results.rows.length == 0) {
-        db_client.query(signUpQuery, [name, email, hashed_password], (e, r) => {
-          if (!e) {
-            Joi.string()
-              .email()
-              .required()
-              .status(201)
-              .send("added successfully, use email and password to log in");
+  if (!email || !password) {
+    return res.status(400).send({
+      message: "Email or password missing.",
+    });
+  } else {
+    if (validator.validate(email)) {
+      const hashed_password = await bcrypt.hash(password, 5);
+      db_client.query(getUserByEmailQuery, [email], (error, results) => {
+        if (!error) {
+          if (results.rows.length == 0) {
+            db_client.query(
+              signUpQuery,
+              [name, email, hashed_password],
+              (e, r) => {
+                if (!e) {
+                  res
+                    .status(201)
+                    .send(
+                      "added successfully, use email and password to log in"
+                    );
+                } else {
+                  res.status(400).send(e.message);
+                }
+              }
+            );
           } else {
-            res.status(400).send(e.message);
+            res.status(400).send("user with this email already exists, login?");
           }
-        });
-      } else {
-        res.status(400).send("user with this email already exists, login?");
-      }
+        } else {
+          res.status(500).send(error);
+        }
+      });
     } else {
-      res.status(500).send(error);
+      res.status(400).send("Please enter a valid email");
     }
-  });
+  }
 };
 
 const getAllUsers = (req, res) => {
