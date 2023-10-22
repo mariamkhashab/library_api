@@ -43,7 +43,7 @@ const router = Router();
 /**
  * @api {get} /overdue List overdue book loans
  * @apiName getOverDueLoans
- *
+ * @apiGroup admin
  * @apiHeader {string} Bearer Authenticaton Token
  *
  * @apiSuccessExample Success-Response:
