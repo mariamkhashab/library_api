@@ -7,7 +7,7 @@ const database_name = process.env.DATABASE;
 
 const PG_client = require("pg").Pool;
 const db_client = new PG_client({
-  connectionString: process.env.POSTGRES_URL + "?sslmode=require",
+  connectionString: process.env.POSTGRES_LIB_URL + "?sslmode=require",
 });
 db_client.connect((err) => {
   if (err) throw err;
